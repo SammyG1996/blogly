@@ -115,6 +115,7 @@ def delete_user(int):
 def new_post(user_int):
   '''This will display the form to create a new post'''
   return render_template('new_post.html')
+  
 
 @app.route('/users/<user_int>/post/new', methods=['POST'])
 def new_post_submit(user_int):
