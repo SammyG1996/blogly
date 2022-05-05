@@ -4,7 +4,7 @@ from crypt import methods
 from distutils.log import debug
 from flask import Flask, redirect, render_template, request
 from importlib_metadata import re
-from models import db, connect_db, Blogly
+from models import db, connect_db, Blogly, Posts
 from flask_debugtoolbar import DebugToolbarExtension
 from secret import secret_key
 
@@ -26,25 +26,29 @@ app.config['SECRET_KEY'] = secret_key
 # This will connect to the database.
 connect_db(app)
 
-# For now the home route redirects to the users page.
 @app.route('/')
 def homepage():
-  return redirect('/users')
+  '''this will redirect to the homepage where all the posts are displayed (newest is showing first)'''
+  posts = Posts.query.order_by(Posts.id.desc()).all()
+  return render_template('/homepage.html', posts=posts)
 
-# The '/users' route will display all the users that are in the database. 
+
 @app.route('/users')
 def users_page():
+  '''The '/users' route will display all the users that are in the database. '''
   users = Blogly.query.all()
   return render_template('users.html', users=users)
 
-# The '/users/new' route will take you to a page to create a new user. 
+
 @app.route('/users/new')
 def new_user():
+  '''The '/users/new' route will take you to a page to create a new user. '''
   return render_template('add_users.html')
 
-# The POST version of the 'users/new' route will push the new user to the database. It will then redirect to users. 
+
 @app.route('/users/new', methods=['POST'])
 def create_new_user():
+  '''The POST version of the 'users/new' route will push the new user to the database. It will then redirect to users. '''
   first_name = request.form['first']
   last_name = request.form['last']
   image_url = request.form['image']
@@ -57,24 +61,34 @@ def create_new_user():
   return redirect('/users')
 
 
-# In the '/users/<int>' route <int> will stand for the ID of the user you want to view more information about. 
-# Using that ID we are able to query all the data needed to display the profile page. 
+
 @app.route('/users/<int>')
 def see_user(int):
+  '''
+  In the '/users/<int>' route <int> will stand for the ID of the user you want to view more information about. 
+  Using that ID we are able to query all the data needed to display the profile page. 
+  '''
   user = Blogly.query.get(int)
-  return render_template('profile.html', user=user)
+  post = Posts.query.order_by(Posts.id.desc()).filter_by(user_id=int)
+  return render_template('profile.html', user=user, post=post)
 
-# In the '/users/<int>/edit' route once again the <int> refers to the the user ID. This then be used to fill out the form with the
-# current inforamtion. Then you will be allowed to make ammendments to database. 
+
 @app.route('/users/<int>/edit')
 def edit_user(int):
+  '''
+  In the '/users/<int>/edit' route once again the <int> refers to the the user ID. This then be used to fill out the form with the
+  current inforamtion. Then you will be allowed to make ammendments to database. 
+  '''
   user = Blogly.query.get(int)
   return render_template('edit_user.html', user=user)
 
-# When you submit those ammendments they will be submitted via POST to the '/users/<int>/edit'. 
-# This will then actually save those new changes to the database.
+
 @app.route('/users/<int>/edit', methods=['POST'])
 def post_edit_user(int):
+  '''
+  When you submit those ammendments they will be submitted via POST to the '/users/<int>/edit'. 
+  This will then actually save those new changes to the database.
+  '''
   user = Blogly.query.get(int)
   first_name = request.form['first']
   last_name = request.form['last']
@@ -87,10 +101,69 @@ def post_edit_user(int):
 
   return redirect(f'/users/{int}')
 
-# This route will is a POST request that will delete the selcted user. 
+
 @app.route('/users/<int>/delete', methods=['POST'])
 def delete_user(int):
+  '''This route will is a POST request that will delete the selcted user. '''
   Blogly.query.filter_by(id=int).delete()
   db.session.commit()
 
   return redirect('/users')
+
+
+@app.route('/users/<user_int>/post/new')
+def new_post(user_int):
+  '''This will display the form to create a new post'''
+  return render_template('new_post.html')
+
+@app.route('/users/<user_int>/post/new', methods=['POST'])
+def new_post_submit(user_int):
+  '''This will submit the new post that was input into the form and ammend it to the database'''
+  title = request.form['title']
+  content = request.form['content']
+
+  new_post = Posts(title=title, content=content, user_id=user_int)
+  db.session.add(new_post)
+  db.session.commit()
+
+  return redirect(f'/users/{user_int}')
+
+
+@app.route('/posts/<post_int>')
+def see_post(post_int):
+  '''This will that ONE specific post based on the post ID.'''
+  post = Posts.query.get(post_int)
+  return render_template('user_post.html', post=post)
+
+
+@app.route('/posts/<post_int>/edit')
+def edit_post(post_int):
+  '''This will allow you to edit a post. It will render a form with the current information already loaded in there.'''
+  post = Posts.query.get(post_int)
+  return render_template('user_post_edit.html', post=post)
+
+
+@app.route('/posts/<post_int>/edit', methods=['POST'])
+def submit_post_edit(post_int):
+  '''This will submit the ammended post to be updated in the database.'''
+  post = Posts.query.get(post_int)
+  title = request.form['title']
+  content = request.form['content']
+
+  post.title = title
+  post.content = content
+
+  db.session.commit()
+
+  return redirect(f'/posts/{post_int}')
+
+
+@app.route('/posts/<post_int>/delete', methods=['POST'])
+def delete_post(post_int):
+  '''This will delete the post and then redirect you to that users posts. '''
+  Posts.query.filter_by(id = post_int).delete()
+  db.session.commit()
+
+  user = request.form['data']
+
+  return redirect(f'/users/{user}')

@@ -1,6 +1,8 @@
 """Models for Blogly."""
 
+from turtle import title
 from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -29,3 +31,21 @@ class Blogly(db.Model):
     image_url = db.Column(db.String(), 
                           nullable=True)
 
+
+class Posts(db.Model):
+    '''This table will contain the posts'''
+
+    __tablename__ = 'posts'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    title = db.Column(db.String(), nullable=False)
+
+    content = db.Column(db.String(), nullable=False)
+
+    created_at = db.Column(db.DateTime, default=datetime.now())
+
+    user_id = db.Column(db.Integer, db.ForeignKey('blogly.id'))
+
+    # Relationship With the Blogly database
+    user = db.relationship('Blogly', backref='post')
