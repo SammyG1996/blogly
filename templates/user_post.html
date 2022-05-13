@@ -17,9 +17,6 @@
                 <div class="card-body">
                   <h5 class="card-title">{{post.title}}</h5>
                   <p class="card-text">{{post.content}}</p>
-                  {% for tag in post.tag%} 
-                    <span class="badge bg-primary">{{tag.name}}</span>
-                  {% endfor %}
                   <p class="card-text"><small class="text-muted">Posted: {{post.created_at}}</small></p>
                   <div class="d-flex">
                     <a href="/posts/{{post.id}}/edit" class="btn btn-success m-1">Edit</a>

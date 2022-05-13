@@ -2,10 +2,9 @@
 
 from crypt import methods
 from distutils.log import debug
-from unicodedata import name
-from flask import Flask, redirect, render_template, request, session
+from flask import Flask, redirect, render_template, request
 from importlib_metadata import re
-from models import db, connect_db, Blogly, Posts, Tags, PostTag
+from models import db, connect_db, Blogly, Posts
 from flask_debugtoolbar import DebugToolbarExtension
 from secret import secret_key
 
@@ -31,7 +30,6 @@ connect_db(app)
 def homepage():
   '''this will redirect to the homepage where all the posts are displayed (newest is showing first)'''
   posts = Posts.query.order_by(Posts.id.desc()).all()
-
   return render_template('/homepage.html', posts=posts)
 
 
@@ -115,9 +113,8 @@ def delete_user(int):
 
 @app.route('/users/<user_int>/post/new')
 def new_post(user_int):
-  tags = Tags.query.all()
   '''This will display the form to create a new post'''
-  return render_template('new_post.html', tags=tags)
+  return render_template('new_post.html')
   
 
 @app.route('/users/<user_int>/post/new', methods=['POST'])
@@ -125,14 +122,9 @@ def new_post_submit(user_int):
   '''This will submit the new post that was input into the form and ammend it to the database'''
   title = request.form['title']
   content = request.form['content']
-  tags = request.form.getlist('tags')
+
   new_post = Posts(title=title, content=content, user_id=user_int)
   db.session.add(new_post)
-  db.session.commit()
-
-  for tag in tags:
-    db.session.add(PostTag(post_id=new_post.id, tags_id=tag))
-    
   db.session.commit()
 
   return redirect(f'/users/{user_int}')
@@ -149,8 +141,7 @@ def see_post(post_int):
 def edit_post(post_int):
   '''This will allow you to edit a post. It will render a form with the current information already loaded in there.'''
   post = Posts.query.get(post_int)
-  tags = Tags.query.all()
-  return render_template('user_post_edit.html', post=post, tags=tags)
+  return render_template('user_post_edit.html', post=post)
 
 
 @app.route('/posts/<post_int>/edit', methods=['POST'])
@@ -159,14 +150,9 @@ def submit_post_edit(post_int):
   post = Posts.query.get(post_int)
   title = request.form['title']
   content = request.form['content']
-  tags = request.form.getlist('tags')
+
   post.title = title
   post.content = content
-
-  PostTag.query.filter_by(post_id = post_int).delete()
-
-  for tag in tags:
-     db.session.add(PostTag(post_id=post_int, tags_id=tag))
 
   db.session.commit()
 
@@ -176,67 +162,9 @@ def submit_post_edit(post_int):
 @app.route('/posts/<post_int>/delete', methods=['POST'])
 def delete_post(post_int):
   '''This will delete the post and then redirect you to that users posts. '''
-  PostTag.query.filter_by(post_id = post_int).delete()
   Posts.query.filter_by(id = post_int).delete()
   db.session.commit()
 
   user = request.form['data']
 
   return redirect(f'/users/{user}')
-
-
-@app.route('/tags')
-def tags():
-  '''This will get all the tags that are in the tags table and display them.'''
-  tags = Tags.query.all()
-  return render_template('tags.html', tags=tags)
-
-@app.route('/tags/<tag_id>')
-def tag_posts(tag_id): 
-  '''This will show the posts that are linked to that individual tag'''
-  tag = Tags.query.get(tag_id)
-  posts = tag.post
-  
-  return render_template('tag_posts.html', posts=posts, tag=tag)
-
-@app.route('/tags/new')
-def new_tags():
-  '''This will take you to a form to create new tags'''
-  return render_template('new_tag.html')
-
-@app.route('/tags/new', methods=['POST'])
-def new_tags_post():
-  '''This will take you to a form to create new tags'''
-  tag_name = request.form['name']
-  new_tag = Tags(name=tag_name)
-
-  db.session.add(new_tag)
-  db.session.commit()
-
-  return redirect('/tags')
-
-@app.route('/tags/<tag_id>/edit')
-def edit_tag(tag_id):
-  '''This will open a form to edit the tag'''
-  tag = Tags.query.get(tag_id)
-
-  return render_template('edit_tag.html', tag=tag)
-
-@app.route('/tags/<tag_id>/edit', methods=['POST'])
-def edit_tag_post(tag_id):
-  '''This will open a form to edit the tag'''
-  tag = Tags.query.get(tag_id)
-  name = request.form['name']
-  tag.name = name
-  db.session.commit()
-
-  return redirect(f'/tags/{tag.id}')
-
-@app.route('/tags/<tag_id>/delete', methods=['POST'])
-def delete_tag(tag_id):
-  '''This route will is a POST request that will delete the selcted user. '''
-  PostTag.query.filter_by(tags_id = tag_id).delete()
-  Tags.query.filter_by(id=tag_id).delete()
-  db.session.commit()
-
-  return redirect('/tags')

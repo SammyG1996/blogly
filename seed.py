@@ -1,8 +1,7 @@
 # Below is a seed file I created to seed my database with information.
 
 from turtle import title
-from unicodedata import name
-from models import Blogly, PostTag, Posts, Tags, db
+from models import Blogly, Posts, db
 from app import app
 
 # Create all tables
@@ -64,22 +63,6 @@ mike3 = Posts(title='My Third Post',
             user_id=3)
 
 
-tag1 = Tags(name='live')
-
-tag2 = Tags(name='laugh')
-
-tag3 = Tags(name='love')
-
-
-post_tag1 = PostTag(post_id=1, tags_id =2)
-
-post_tag2 = PostTag(post_id=3, tags_id =1)
-
-post_tag3 = PostTag(post_id=9, tags_id =3)
-
-
-
-
 
 
 
@@ -103,20 +86,6 @@ db.session.add(sara3)
 db.session.add(mike1)
 db.session.add(mike2)
 db.session.add(mike3)
-
-# Commit--otherwise, this never gets saved!
-db.session.commit()
-
-db.session.add(tag1)
-db.session.add(tag2)
-db.session.add(tag3)
-
-# Commit--otherwise, this never gets saved!
-db.session.commit()
-
-db.session.add(post_tag1)
-db.session.add(post_tag2)
-db.session.add(post_tag3)
 
 # Commit--otherwise, this never gets saved!
 db.session.commit()
