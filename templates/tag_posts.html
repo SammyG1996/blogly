@@ -7,6 +7,13 @@
   
   <div class="col-12 col-md-8 d-flex justify-content-center">
     <div class="row d-flex justify-content-center">
+      <h1>#{{tag.name}}</h1>
+      
+      <form action="/tags/{{tag.id}}/delete" method="POST">
+        <a class="btn btn-success" role="button" href="/tags/{{tag.id}}/edit">Edit Tag</a>
+        <button type="submit" class="btn btn-danger m-1">Delete Tag</button>
+      </form>
+
       {% for user_post in posts %}
       <div class="col-12 d-flex justify-content-center">
         <div class="card mb-3" style="max-width: 80%;">
@@ -18,9 +25,6 @@
               <div class="card-body">
                 <h5 class="card-title">{{user_post.title}}</h5>
                 <p class="card-text">{{user_post.content}}</p>
-                {% for tag in user_post.tag%} 
-                  <span class="badge bg-primary">{{tag.name}}</span>
-                {% endfor %}
                 <p class="card-text"><small class="text-muted">Posted: {{user_post.created_at}}</small></p>
               </div>
             </div>

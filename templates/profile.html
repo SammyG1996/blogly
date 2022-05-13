@@ -31,6 +31,9 @@
           <div class="card-body">
             <h5 class="card-title">{{user_post.title}}</h5>
             <p class="card-text">{{user_post.content}}</p>
+            {% for tag in user_post.tag%} 
+              <span class="badge bg-primary">{{tag.name}}</span>
+            {% endfor %}
             <p class="card-text"><small class="text-muted">Posted: {{user_post.created_at}}</small></p>
             <a href="/posts/{{user_post.id}}" class="btn btn-success m-1">See Post</a>
           </div>

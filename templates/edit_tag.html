@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mt-3">
+  <div class="col-2"></div>
+
+  <div class="col">
+    
+    
+    <form class=" p-5 rounded bg-primary" method="POST">
+      <h3 class="text-light">Edit Tag:</h>
+      <div class="mb-3">
+        <label for="name" class="form-label fs-5 text-light">Tag Name:</label>
+        <textarea name="name" class="form-control" id="name" row='50'>{{tag.name}}</textarea>
+      </div>
+
+      <button type="submit" class="btn btn-success">Submit</button>
+
+      </form>
+  </div>
+
+  <div class="col-2"></div>
+</div>
+
+{% endblock %}
